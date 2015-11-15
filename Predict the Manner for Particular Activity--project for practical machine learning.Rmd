@@ -1,0 +1,90 @@
+---
+title: "Predict the Manner for Particular Activity--project for practical machine learning"
+author: "Luxiaoguang"
+date: "2015/11/12"
+output: html_document
+---
+
+In this project, we will use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set.
+
+1.Load necessary r packages such as ggplot2, caret, randomForest, dplyr etc.. 
+
+```{r,echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+library(ggplot2)
+library(caret)
+library(randomForest)
+library(dplyr)
+setwd("E:/data science/Practical Machine Learning")
+```
+
+2.Read and seaprate the data into three parts. 1st part will be the validation set(20% of the data). This will be used for cross validation and calculate the out of sample errors rate. 2nd part will be training set(60% of the data). 3rd part will be the testing set(20% of the data). 
+
+```{r,echo=FALSE}
+data<-read.csv("pml-training.csv",stringsAsFactors = FALSE)
+inTrain <- createDataPartition(data$classe, p = 0.8,list = FALSE)
+data <- data[ inTrain,]
+validation <- data[-inTrain,]
+inTrain <- createDataPartition(data$classe, p = 0.75,list = FALSE)
+training <- data[ inTrain,]
+testing <- data[-inTrain,]
+```
+
+3.Clean the data. Remove varibales with NA and empty data. Remove time variables, name variables, X variable and new window variable. These are all unrelated variables to classe variable. These variables will affect the predict accuracy.
+
+Here is the fina data varibales names.  
+
+```{r,echo=FALSE,warning=FALSE,error=FALSE,message=FALSE}
+training[,1:159]<-lapply(training[,1:159],as.numeric)
+training<-training[,colSums(is.na(training))<100]
+training$classe<-as.factor(training$classe)
+training<-training[,c(-1,-2,-3,-4)]
+colnames(training)
+```
+
+4.Build a machine learning algorithms using randomForest.      
+```{r,echo=FALSE,cache=TRUE}
+randomForestFit<-randomForest(classe~.,data = training)
+##boostingFit <- train(classe~.,method="gbm",data = training,verbose=FALSE)
+##ldaFit <- train(classe ~ .,data=training,method="lda")
+
+```
+
+5.Predict    
+```{r,echo=FALSE}
+predtesting1<-as.character(predict(randomForestFit,testing))
+
+```
+
+6.Check the accuracy and out of sample errors rate. 
+
+```{r,echo=FALSE}
+##table(predtesting1,testing$classe)
+accuracy1 <- predtesting1==testing$classe
+##table(accuracy1)
+accuracyrate1<-length(which(accuracy1==TRUE))/length(accuracy1)
+##accuracyrate1
+```
+
+Let's have a look at the confusionMatrix. 
+```{r,echo=FALSE}
+##Just have a look at the confusionMatrix.
+confusionMatrix(testing$classe,predict(randomForestFit,testing))
+```
+
+**So the expecting accuracy rate will be `r accuracyrate1`.**  
+
+Let's check the validation data for out of sample errors.   
+
+```{r,echo=FALSE}
+##Calculate the out of sample errors rate.
+predvalidation1<-as.character(predict(randomForestFit,validation))
+outoferrors<-data.frame(validation$classe,predvalidation1)
+table(predvalidation1,validation$classe)
+outaccuracy <- predvalidation1==validation$classe
+table(outaccuracy)
+outoferroesrate<-length(which(outaccuracy==FALSE))/length(outaccuracy)
+```
+
+**After calculation, the out of sample erroes rate is `r outoferroesrate`**      
+
+
