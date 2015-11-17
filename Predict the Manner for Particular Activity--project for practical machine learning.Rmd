@@ -1,5 +1,6 @@
 ---
-title: "Predict the Manner for Particular Activity--project for practical machine learning"
+title: "Predict the Manner for Particular Activity 
+                                       -- project for practical machine learning"
 author: "Luxiaoguang"
 date: "2015/11/12"
 output: html_document
@@ -17,13 +18,15 @@ library(dplyr)
 setwd("E:/data science/Practical Machine Learning")
 ```
 
-2.Read and seaprate the data into three parts. 1st part will be the validation set(20% of the data). This will be used for cross validation and calculate the out of sample errors rate. 2nd part will be training set(60% of the data). 3rd part will be the testing set(20% of the data). 
+2.Read and seaprate the data into three parts. 1st part will be the validation set(20% of the data). This will be used for cross validation and calculate the out of sample errors rate. 2nd part will be training set(60% of the data). 3rd part will be the testing set(20% of the data). Set.seed() to make sure the analysis is reproducable.
 
 ```{r,echo=FALSE}
 data<-read.csv("pml-training.csv",stringsAsFactors = FALSE)
+set.seed(3344)
 inTrain <- createDataPartition(data$classe, p = 0.8,list = FALSE)
 data <- data[ inTrain,]
 validation <- data[-inTrain,]
+set.seed(3434)
 inTrain <- createDataPartition(data$classe, p = 0.75,list = FALSE)
 training <- data[ inTrain,]
 testing <- data[-inTrain,]
